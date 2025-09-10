@@ -1,6 +1,6 @@
 const userService = require("../services/userService");
 
-module.exports = async function loginController(req, res) {
+async function loginController(req, res) {
   const { userUid, password } = req.body;
 
   if (!userUid || !password)
@@ -12,4 +12,6 @@ module.exports = async function loginController(req, res) {
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
-};
+}
+
+module.exports = loginController;

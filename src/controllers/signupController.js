@@ -1,6 +1,6 @@
 const userService = require("../services/userService");
 
-module.exports = async function signupController(req, res) {
+async function signupController(req, res) {
   const { userUid, password, name, mobile } = req.body;
   const phoneNumber = mobile; // DB 컬럼명과 매핑
 
@@ -22,11 +22,30 @@ module.exports = async function signupController(req, res) {
 
   // 비밀번호 복잡도 체크
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,16}$/;
-  if (!passwordRegex.test(password))
+  // 🔹 비밀번호 제약 조건 분리
+  if (password.length < 8 || password.length > 16) {
     return res.status(400).json({
-      error: "비밀번호는 8~16자리, 대문자·소문자·숫자를 모두 포함해야 합니다.",
+      error: "비밀번호는 8~16자리여야 합니다.",
     });
+  }
 
+  if (!/[a-z]/.test(password)) {
+    return res.status(400).json({
+      error: "비밀번호에 소문자가 최소 1개 포함되어야 합니다.",
+    });
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return res.status(400).json({
+      error: "비밀번호에 대문자가 최소 1개 포함되어야 합니다.",
+    });
+  }
+
+  if (!/\d/.test(password)) {
+    return res.status(400).json({
+      error: "비밀번호에 숫자가 최소 1개 포함되어야 합니다.",
+    });
+  }
   try {
     const result = await userService.signup(
       userUid,
@@ -38,4 +57,6 @@ module.exports = async function signupController(req, res) {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-};
+}
+
+module.exports = signupController;

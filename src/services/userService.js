@@ -8,7 +8,7 @@ async function signup(userUid, password, name, phoneNumber) {
 
   const hashed = await bcrypt.hash(password, 10);
   await createUser(userUid, hashed, name, phoneNumber);
-  return { msg: "회원가입 성공" };
+  return { message: "회원가입 성공" };
 }
 
 // 로그인
@@ -19,7 +19,7 @@ async function login(userUid, password) {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) throw new Error("아이디 또는 비밀번호가 잘못되었습니다.");
 
-  return { msg: "로그인 되었습니다." };
+  return { message: "로그인 되었습니다." };
 }
 
 // DB 테스트 (여전히 서비스 안에 두거나 별도 모델 만들어도 됨)
