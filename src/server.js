@@ -5,7 +5,7 @@ const {
   cookieMiddleware,
   sessionMiddleware,
 } = require("./middlewares");
-const { BACKEND_PORT, SESSION } = require("./config");
+const { BACKEND_PORT } = require("./config");
 const userRoutes = require("./routes/userRoutes");
 const postsRouter = require("./routes/posts");
 const predictRouter = require("./routes/predictRoutes");
@@ -25,6 +25,7 @@ app.use("/api/predict", predictRouter);
 
 // ----------------- 테스트용 라우트 -----------------
 app.get("/check-session", (req, res) => {
+  console.log(req.session.user);
   res.json({ session: req.session });
 });
 

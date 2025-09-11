@@ -1,5 +1,5 @@
 module.exports = {
-  host: "192.168.0.55", // DB 서버 IP
+  host: "192.168.0.35", // DB 서버 IP
   port: 3307, // DB 접속 포트
   user: "root", // DB 사용자 계정
   password: "test", // DB 비밀번호

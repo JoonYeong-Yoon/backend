@@ -1,6 +1,6 @@
 async function logoutController(req, res) {
   // 세션이 존재하는 경우 삭제
-  if (req.session) {
+  if (req.session.user) {
     req.session.destroy((err) => {
       if (err) {
         return res
