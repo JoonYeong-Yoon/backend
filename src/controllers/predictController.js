@@ -23,7 +23,9 @@ const predictController = async (req, res) => {
 
   // Buffer → 임시 파일 저장 (Python에서 읽기 위해)
   const tempFilePath = path.join(__dirname, "../python/temp_image.jpg");
+  console.log("👉 Saving temp file at:", tempFilePath);
   fs.writeFileSync(tempFilePath, req.file.buffer);
+  console.log("✅ Temp file saved:", fs.existsSync(tempFilePath));
 
   try {
     const result = await runPythonPredict(tempFilePath);
