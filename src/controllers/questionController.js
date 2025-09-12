@@ -21,12 +21,25 @@ const createQuestion = async (req, res) => {
       "INSERT INTO questions (userNo, title, content) VALUES (?, ?, ?)",
       [userNo, title, content]
     );
+
+    // 🔹 방금 등록한 글을 다시 SELECT하여 queCreatedAt 포함
+    const rows = await conn.query(
+      `SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.name as username
+       FROM questions q
+       JOIN users u ON q.userNo = u.userNo
+       WHERE q.questionNo = ?`,
+      [result.insertId]
+    );
+
+    const row = rows[0];
     res.json({
       message: "질문이 작성되었습니다.",
       documentId: result.insertId.toString(), // documentId 유지
       userUid: userNo.toString(),
+      username: req.session.user.name,
       title,
       content,
+      queCreatedAt: row.queCreatedAt, // 🔹 DB의 실제 타임스탬프
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -41,7 +54,7 @@ const getQuestions = async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(`
-      SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, u.name as username
+      SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.name as username
       FROM questions q
       JOIN users u ON q.userNo = u.userNo
       ORDER BY q.questionNo DESC
@@ -55,6 +68,7 @@ const getQuestions = async (req, res) => {
       title: r.title,
       content: r.content,
       answer: r.answer,
+      date: r.queCreatedAt, // 🔹 queCreatedAt 추가
     }));
 
     res.json(safeRows);
@@ -72,7 +86,7 @@ const getQuestionById = async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-      `SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, u.userUid as username
+      `SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.userUid as username
        FROM questions q
        JOIN users u ON q.userNo = u.userNo
        WHERE q.questionNo = ?`,
@@ -91,6 +105,7 @@ const getQuestionById = async (req, res) => {
       title: row.title,
       content: row.content,
       answer: row.answer,
+      date: r.queCreatedAt, // 🔹 queCreatedAt 추가
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

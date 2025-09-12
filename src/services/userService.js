@@ -19,7 +19,7 @@ async function login(userUid, password) {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) throw new Error("아이디 또는 비밀번호가 잘못되었습니다.");
 
-  return { message: "로그인 되었습니다." };
+  return;
 }
 
 // DB 테스트 (여전히 서비스 안에 두거나 별도 모델 만들어도 됨)
