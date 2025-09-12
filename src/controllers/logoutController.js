@@ -11,7 +11,8 @@ async function logoutController(req, res) {
       res.json({ message: "로그아웃 완료" });
     });
   } else {
-    res.status(400).json({ error: "로그인 상태가 아닙니다." });
+    // 이미 로그아웃 상태여도 에러 없이 200 반환
+    res.json({ message: "이미 로그아웃 상태입니다." });
   }
 }
 

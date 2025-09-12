@@ -28,7 +28,7 @@ def preprocess_image(img_path, target_size=(224, 224)):
     img_array = cv2.resize(img, target_size)
     # img = Image.open(img_path).convert("RGB")   # RGB 변환
     # img = img.resize(target_size)               # 224x224 리사이즈
-    # img_array = np.array(img)# / 255.0           # [0,1] 정규화
+    # img_array = np.array(img) / 255.0           # [0,1] 정규화
     img_array = np.expand_dims(img_array, axis=0)  # (1, 224, 224, 3)
     return img_array
 
