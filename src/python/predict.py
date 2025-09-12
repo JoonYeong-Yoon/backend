@@ -19,7 +19,8 @@ classes = [
 ]
 
 # ---------------- 모델 로드 ----------------
-model_path = os.path.join(os.path.dirname(__file__), "best_model.h5")
+model_path = os.path.join(os.path.dirname(__file__), "mymodel_.h5")
+
 model = tf.keras.models.load_model(model_path)
 
 # ---------------- 이미지 전처리 ----------------
