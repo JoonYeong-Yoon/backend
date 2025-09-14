@@ -41,10 +41,15 @@ probabilities = predictions[0]  # (num_classes,) 형태
 
 # 가장 높은 확률의 클래스 선택
 max_idx = np.argmax(probabilities)
-message = f"{probabilities[max_idx]*100:.2f}% 확률로 '{classes[max_idx]}'이(가) 의심됩니다."
+max_disease = classes[max_idx]
+max_accuracy = float(probabilities[max_idx])
+
+message = f"{max_accuracy*100:.2f}% 확률로 '{max_disease}'이(가) 의심됩니다."
 
 # ---------------- JSON 출력 ----------------
 print(json.dumps({
     "probabilities": {c: float(p) for c, p in zip(classes, probabilities)},
-    "message": message
+    "message": message,
+    "maxDisease": max_disease,      # 🔹 추가
+    "maxAccuracy": max_accuracy     # 🔹 추가
 }))

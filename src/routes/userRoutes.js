@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const signupController = require("../controllers/signupController");
-const loginController = require("../controllers/loginController");
-const logoutController = require("../controllers/logoutController");
+const signupController = require("../controllers/users/signupController");
+const loginController = require("../controllers/users/loginController");
+const logoutController = require("../controllers/users/logoutController");
 
 // 회원가입
 router.post("/signup", signupController);

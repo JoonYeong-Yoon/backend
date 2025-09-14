@@ -5,3 +5,11 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 module.exports = upload;
+
+// memoryStorage
+
+// 업로드된 파일이 서버 메모리에만 존재
+
+// DB 저장, 다른 API 전송 등 임시 처리에 적합
+
+// 서버 재시작 시 파일은 사라짐

@@ -1,151 +1,113 @@
 const pool = require("../db/pool");
+const questionService = require("../services/questionService");
 const { getLoggedInUserNo } = require("../utils/sessionHelper");
 
-// 질문 작성
-const createQuestion = async (req, res) => {
+// ----------------- 질문 작성 -----------------
+async function createQuestion(req, res) {
   let userNo;
   try {
+    // 세션에서 로그인된 사용자 번호 가져오기
     userNo = getLoggedInUserNo(req);
   } catch (err) {
+    // 세션 정보 없으면 에러 반환
     return res.status(err.status).json({ error: err.message });
   }
 
   const { title, content } = req.body;
+
+  // 필수 입력값 체크
   if (!title || !content)
     return res.status(400).json({ error: "제목과 내용을 입력해주세요." });
 
-  let conn;
   try {
-    conn = await pool.getConnection();
-    const result = await conn.query(
-      "INSERT INTO questions (userNo, title, content) VALUES (?, ?, ?)",
-      [userNo, title, content]
-    );
+    // 서비스 레이어를 통해 질문 생성
+    const row = await questionService.createQuestion(userNo, title, content);
 
-    // 🔹 방금 등록한 글을 다시 SELECT하여 queCreatedAt 포함
-    const rows = await conn.query(
-      `SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.name as username
-       FROM questions q
-       JOIN users u ON q.userNo = u.userNo
-       WHERE q.questionNo = ?`,
-      [result.insertId]
-    );
-
-    const row = rows[0];
+    // 생성된 질문 정보와 함께 클라이언트에 반환
     res.json({
       message: "질문이 작성되었습니다.",
-      documentId: result.insertId.toString(), // documentId 유지
-      userUid: userNo.toString(),
-      username: req.session.user.name,
-      title,
-      content,
-      queCreatedAt: row.queCreatedAt, // 🔹 DB의 실제 타임스탬프
+      documentId: row.questionNo?.toString() || null, // 질문 번호
+      userNo: row.userNo?.toString() || null, // 작성자 번호
+      username: row.username, // 작성자 이름
+      title: row.title, // 제목
+      content: row.content, // 내용
+      queCreatedAt: row.queCreatedAt, // 작성일
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (conn) conn.release();
+    // DB나 서비스 레이어 오류 처리
+    console.error(err);
+    res.status(500).json({ error: "질문 작성 중 오류가 발생했습니다." });
   }
-};
+}
 
-// 질문 전체 조회 (로그인 필요 없음)
-const getQuestions = async (req, res) => {
-  let conn;
+// ----------------- 질문 목록 조회 -----------------
+async function getQuestions(req, res) {
   try {
-    conn = await pool.getConnection();
-    const rows = await conn.query(`
-      SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.name as username
-      FROM questions q
-      JOIN users u ON q.userNo = u.userNo
-      ORDER BY q.questionNo DESC
-    `);
+    // 서비스 레이어에서 모든 질문 조회
+    const rows = await questionService.getQuestions();
 
+    // DB 결과를 클라이언트 친화적으로 변환
     const safeRows = rows.map((r) => ({
-      ...r,
       documentId: r.questionNo?.toString() || null,
       userNo: r.userNo?.toString() || null,
       username: r.username,
       title: r.title,
       content: r.content,
-      answer: r.answer,
-      date: r.queCreatedAt, // 🔹 queCreatedAt 추가
+      answer: r.answer, // 답변 여부/내용
+      date: r.queCreatedAt, // 작성일
     }));
 
     res.json(safeRows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (conn) conn.release();
+    console.error(err);
+    res.status(500).json({ error: "질문 목록 조회 중 오류가 발생했습니다." });
   }
-};
+}
 
-// 단건 질문 조회
-const getQuestionById = async (req, res) => {
-  const { id } = req.params;
-  let conn;
+// ----------------- 단일 질문 조회 -----------------
+async function getQuestionById(req, res) {
   try {
-    conn = await pool.getConnection();
-    const rows = await conn.query(
-      `SELECT q.questionNo, q.userNo, q.title, q.content, q.answer, q.queCreatedAt, u.userUid as username
-       FROM questions q
-       JOIN users u ON q.userNo = u.userNo
-       WHERE q.questionNo = ?`,
-      [id]
-    );
-
-    if (rows.length === 0)
+    // 파라미터로 전달된 ID 기준 질문 조회
+    const row = await questionService.getQuestionByIdService(req.params.id);
+    if (!row)
       return res.status(404).json({ error: "질문을 찾을 수 없습니다." });
 
-    const row = rows[0];
     res.json({
-      ...row,
       documentId: row.questionNo?.toString() || null,
       userNo: row.userNo?.toString() || null,
       username: row.username,
       title: row.title,
       content: row.content,
       answer: row.answer,
-      date: r.queCreatedAt, // 🔹 queCreatedAt 추가
+      date: row.queCreatedAt,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (conn) conn.release();
+    console.error(err);
+    res.status(500).json({ error: "질문 조회 중 오류가 발생했습니다." });
   }
-};
+}
 
-// 질문 삭제
-const deleteQuestion = async (req, res) => {
-  const { id } = req.params;
+// ----------------- 질문 삭제 -----------------
+async function deleteQuestion(req, res) {
   let userNo;
   try {
+    // 세션에서 로그인된 사용자 번호 확인
     userNo = getLoggedInUserNo(req);
   } catch (err) {
     return res.status(err.status).json({ error: err.message });
   }
 
-  let conn;
   try {
-    conn = await pool.getConnection();
-    const rows = await conn.query(
-      "SELECT * FROM questions WHERE questionNo = ?",
-      [id]
-    );
-    if (rows.length === 0)
-      return res.status(404).json({ error: "질문을 찾을 수 없습니다." });
-
-    const question = rows[0];
-    if (question.userNo !== userNo)
-      return res.status(403).json({ error: "본인 질문만 삭제할 수 있습니다." });
-
-    await conn.query("DELETE FROM questions WHERE questionNo = ?", [id]);
+    // 서비스 레이어를 통해 질문 삭제
+    await questionService.removeQuestion(userNo, req.params.id);
     res.json({ message: "질문이 삭제되었습니다." });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (conn) conn.release();
+    console.error(err);
+    // 서비스 레이어에서 발생한 상태 코드 처리
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    res.status(500).json({ error: "질문 삭제 중 오류가 발생했습니다." });
   }
-};
+}
 
 module.exports = {
   createQuestion,
