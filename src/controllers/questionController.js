@@ -54,7 +54,7 @@ async function getQuestions(req, res) {
       title: r.title,
       content: r.content,
       answer: r.answer, // 답변 여부/내용
-      date: r.queCreatedAt, // 작성일
+      queCreatedAt: r.queCreatedAt, // 작성일
     }));
 
     res.json(safeRows);
@@ -79,7 +79,7 @@ async function getQuestionById(req, res) {
       title: row.title,
       content: row.content,
       answer: row.answer,
-      date: row.queCreatedAt,
+      queCreatedAt: row.queCreatedAt,
     });
   } catch (err) {
     console.error(err);
