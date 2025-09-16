@@ -1,5 +1,5 @@
 const userService = require("../../services/userService");
-// const { validateEmail, validatePassword } = require("../../utils/validators");
+const { validateEmail, validatePassword } = require("../../utils/validators");
 
 // 회원가입 요청 처리 컨트롤러
 async function signupController(req, res) {
@@ -38,7 +38,7 @@ async function signupController(req, res) {
       phoneNumber
     );
     // 성공 시 메시지 반환
-    res.json(result);
+    res.status(201).json(result);
   } catch (err) {
     // 이미 존재하는 사용자 등 오류 발생 시 400 Bad Request 반환
     res.status(400).json({ error: err.message });
